@@ -26,15 +26,16 @@ class UI {
     });
     
     // Record button
-    this.recordBtn.addEventListener('click', () => {
-      if (!recorder.isRecording) {
-        recorder.startRecording();
-        this.recordBtn.textContent = 'Stop Recording';
-      } else {
-        recorder.finishRecording();
-        this.recordBtn.textContent = 'Start Recording';
-      }
-    });
+    // In ui.js, setupEventListeners method:
+this.recordBtn.addEventListener('click', () => {
+  if (!recorder.isRecording) {
+    recorder.startRecording();
+    this.recordBtn.textContent = 'Stop Recording';
+  } else {
+    recorder.finishRecording();
+    this.recordBtn.textContent = 'Start Recording';
+  }
+});
     
     // Save preset button
     this.savePresetBtn.addEventListener('click', () => {
@@ -53,15 +54,45 @@ class UI {
     });
     
     // Preset select
-    this.presetSelect.addEventListener('change', () => {
-      const selectedPreset = this.presetSelect.value;
-      if (selectedPreset) {
-        config.loadPreset(selectedPreset);
-        this.updateUIFromConfig();
-        this.reinitializeSystems();
-        this.presetSelect.value = '';
-      }
-    });
+    // In js/ui.js, modify the presetSelect event listener:
+this.presetSelect.addEventListener('change', () => {
+  const selectedPreset = this.presetSelect.value;
+  if (selectedPreset) {
+    // Load the preset configuration
+    config.loadPreset(selectedPreset);
+    
+    // Update UI to match new config
+    this.updateUIFromConfig();
+    
+    // First clear existing particles and other elements
+    if (particleSystem) particleSystem.clear();
+    
+    // Complete reset of all systems
+    if (particleSystem) {
+      particleSystem = new ParticleSystem();
+      particleSystem.initialize();
+    }
+    if (attractorSystem) {
+      attractorSystem = new AttractorSystem();
+      attractorSystem.initialize();
+    }
+    if (constraintSystem) {
+      constraintSystem = new ConstraintSystem();
+      constraintSystem.initialize();
+    }
+    if (fractalSystem) {
+      fractalSystem = new FractalSystem();
+      fractalSystem.initialize();
+    }
+    if (effectsSystem) {
+      effectsSystem = new EffectsSystem();
+      effectsSystem.initialize();
+    }
+    
+    // Reset the dropdown value
+    this.presetSelect.value = '';
+  }
+});
   }
   
   reinitializeSystems() {

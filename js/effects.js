@@ -101,29 +101,36 @@ class EffectsSystem {
     this.backgroundBuffer.updatePixels();
   }
   
-  applyBlur() {
-    // Replace this line:
-    this.blurBuffer.image(canvas, 0, 0);
-    
-    // With this:
-    this.blurBuffer.copy(drawingContext.canvas, 0, 0, width, height, 0, 0, width, height);
-    
-    // Rest of the method remains the same
-    this.blurBuffer.filter(BLUR, 3);
-    image(this.blurBuffer, 0, 0);
-  }
+  // Replace the entire applyBlur method in effects.js with this code:
+applyBlur() {
+  // Get the current canvas content using p5's get() function
+  const currentCanvas = get();
+  // Draw the content to the blur buffer
+  this.blurBuffer.clear();
+  this.blurBuffer.image(currentCanvas, 0, 0);
   
-  applyGlow() {
-    // Replace this line:
-    this.blurBuffer.image(canvas, 0, 0);
-    
-    // With this:
-    this.blurBuffer.copy(drawingContext.canvas, 0, 0, width, height, 0, 0, width, height);
-    
-    // Rest of the method remains the same
-    this.blurBuffer.filter(BLUR, config.glowStrength);
-    image(this.blurBuffer, 0, 0);
-  }
+  // Apply blur filter
+  this.blurBuffer.filter(BLUR, 3);
+  
+  // Draw the blurred result back to main canvas
+  image(this.blurBuffer, 0, 0);
+}
+
+// Replace the entire applyGlow method in effects.js with this code:
+applyGlow() {
+  // Get the current canvas content using p5's get() function
+  const currentCanvas = get();
+  // Draw content to the blur buffer
+  this.blurBuffer.clear();
+  this.blurBuffer.image(currentCanvas, 0, 0);
+  
+  // Apply blur for glow effect
+  this.blurBuffer.filter(BLUR, config.glowStrength);
+  
+  // Draw the blurred image first, then the original on top for glow effect
+  image(this.blurBuffer, 0, 0);
+  image(currentCanvas, 0, 0);
+}
   
   applyVignette() {
     // Apply a vignette effect

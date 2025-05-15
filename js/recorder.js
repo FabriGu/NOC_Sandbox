@@ -1,130 +1,180 @@
 /**
- * Recording system to capture frames at a consistent rate
- * regardless of simulation performance
+ * Recording system using CCapture.js
  */
 class Recorder {
   constructor() {
     this.isRecording = false;
-    this.frames = [];
     this.capturer = null;
     this.recordedFrameCount = 0;
     this.totalFramesToRecord = 0;
-    this.recordingStartTime = 0;
-    this.lastCaptureTime = 0;
-    this.frameDuration = 0;
-    this.format = 'gif';
-    this.quality = 1;
-    this.captureCanvas = null;
   }
   
   setup() {
-    // Create a capture canvas that we'll use for recording
-    this.captureCanvas = createGraphics(config.width, config.height);
+    console.log("Recorder setup complete. Use Start Recording to begin.");
   }
   
   startRecording() {
     if (this.isRecording) return;
     
-    this.isRecording = true;
-    this.recordedFrameCount = 0;
-    this.recordingStartTime = millis();
-    this.frameDuration = 1000 / config.recordingFPS;
-    this.totalFramesToRecord = config.recordingDuration * config.recordingFPS;
-    this.lastCaptureTime = this.recordingStartTime;
-    this.frames = [];
+    // Create options based on config
+    const options = {
+      framerate: config.recordingFPS,
+      format: config.recordingFormat,
+      name: "brainrot_" + new Date().toISOString().replace(/[:.]/g, '-'),
+      verbose: false,
+      display: true,
+      motionBlurFrames: 1  // No motion blur by default
+    };
     
-    // Set format and quality based on config
-    this.format = config.recordingFormat;
-    
-    switch (config.recordingQuality) {
-      case 'low': this.quality = 0.5; break;
-      case 'medium': this.quality = 0.8; break;
-      case 'high': this.quality = 1.0; break;
-      default: this.quality = 0.8;
+    // Format-specific options
+    switch (config.recordingFormat) {
+      case 'gif':
+        // Adjust quality based on settings
+        switch (config.recordingQuality) {
+          case 'low':
+            options.quality = 10;
+            options.workers = 2;
+            break;
+          case 'medium':
+            options.quality = 5;
+            options.workers = 4;
+            break;
+          case 'high':
+            options.quality = 1;
+            options.workers = 8;
+            break;
+        }
+        // Set path to gif worker
+        options.workersPath = 'node_modules/ccapture.js/build/';
+        break;
+        
+      case 'webm':
+        // Set WebM quality
+        switch (config.recordingQuality) {
+          case 'low': 
+            options.quality = 0.6; 
+            break;
+          case 'medium': 
+            options.quality = 0.8; 
+            break;
+          case 'high': 
+            options.quality = 0.95; 
+            break;
+        }
+        break;
+        
+      case 'png':
+      case 'jpg':
+        // These formats don't need special options
+        break;
     }
     
-    console.log(`Started recording: ${this.totalFramesToRecord} frames at ${config.recordingFPS} FPS`);
+    // Auto-save for long recordings (prevents browser issues with large files)
+    if (config.recordingDuration > 20) {
+      options.autoSaveTime = 30; // Save every 30 seconds for long recordings
+    }
+    
+    // Calculate total frames to record
+    this.totalFramesToRecord = config.recordingDuration * config.recordingFPS;
+    
+    try {
+      // Create and start the capturer
+      this.capturer = new CCapture(options);
+      this.capturer.start();
+      this.isRecording = true;
+      this.recordedFrameCount = 0;
+      
+      console.log(`Started recording ${this.totalFramesToRecord} frames at ${config.recordingFPS} FPS in ${config.recordingFormat} format`);
+    } catch (e) {
+      console.error("Error starting CCapture:", e);
+      alert("There was an error starting the recording. Check the console for details.");
+    }
   }
   
   update() {
-    if (!this.isRecording) return;
+    if (!this.isRecording || !this.capturer) return;
     
-    const currentTime = millis();
-    const elapsedTime = currentTime - this.lastCaptureTime;
-    
-    // If it's time to capture a frame
-    if (elapsedTime >= this.frameDuration) {
-      // Copy the main canvas to the capture canvas
-      // this.captureCanvas.image(canvas, 0, 0);
-      this.captureCanvas.copy(get(), 0, 0, width, height, 0, 0, this.captureCanvas.width, this.captureCanvas.height);
-
-      
-      // Add frame data (base64 image)
-      this.frames.push(this.captureCanvas.canvas.toDataURL('image/png'));
+    try {
+      // Capture the current frame from the canvas
+      this.capturer.capture(drawingContext.canvas);
       this.recordedFrameCount++;
-      this.lastCaptureTime = currentTime;
       
-      // Show recording feedback
-      push();
-      fill(255, 0, 0);
-      noStroke();
-      ellipse(20, 20, 10, 10);
-      fill(255);
-      text(`Recording: ${Math.floor(this.recordedFrameCount / this.totalFramesToRecord * 100)}%`, 35, 25);
-      pop();
+      // Display recording indicator if not using CCapture's built-in display
+      if (!this.capturer.settings.display) {
+        push();
+        fill(255, 0, 0);
+        noStroke();
+        ellipse(20, 20, 10, 10);
+        fill(255);
+        const percentage = Math.floor(this.recordedFrameCount / this.totalFramesToRecord * 100);
+        text(`Recording: ${percentage}% (${this.recordedFrameCount}/${this.totalFramesToRecord})`, 35, 25);
+        pop();
+      }
       
       // Check if we've recorded enough frames
       if (this.recordedFrameCount >= this.totalFramesToRecord) {
         this.finishRecording();
       }
+    } catch (e) {
+      console.error("Error during frame capture:", e);
+      this.cancelRecording();
     }
   }
   
   finishRecording() {
-    if (!this.isRecording) return;
+    if (!this.isRecording || !this.capturer) return;
     
-    console.log(`Finished recording ${this.recordedFrameCount} frames.`);
-    this.isRecording = false;
+    console.log(`Finishing recording after ${this.recordedFrameCount} frames.`);
     
-    // We have all the frames, now create and download the file
-    this.saveRecording();
+    // Show processing message
+    push();
+    fill(0, 0, 0, 200);
+    rect(width/2 - 150, height/2 - 50, 300, 100);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(16);
+    text("Processing recording...", width/2, height/2 - 15);
+    text("This may take a moment.", width/2, height/2 + 15);
+    pop();
+    
+    // Process on next frame to ensure UI message is shown
+    setTimeout(() => {
+      try {
+        this.capturer.stop();
+        this.capturer.save();
+        this.isRecording = false;
+        this.capturer = null;
+        
+        // Update UI button
+        const recordBtn = document.getElementById('record-btn');
+        if (recordBtn) {
+          recordBtn.textContent = 'Start Recording';
+        }
+      } catch (e) {
+        console.error("Error finishing recording:", e);
+        alert("There was an error processing the recording. Check the console for details.");
+      }
+    }, 100);
   }
   
-  saveRecording() {
-    console.log("Processing recording...");
+  cancelRecording() {
+    if (!this.isRecording || !this.capturer) return;
     
-    // Create a filename with timestamp
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = `brainrot_${timestamp}`;
+    console.log("Recording canceled");
     
-    if (this.format === 'gif') {
-      this.saveAsGif(filename);
-    } else {
-      // For formats that p5.js doesn't natively support, we'll 
-      // give instructions or could integrate with external libraries
-      alert(`Recording complete! ${this.recordedFrameCount} frames captured.\n\nTo save as ${this.format}, you would need an additional library like CCapture.js or MediaRecorder API.`);
+    try {
+      this.capturer.stop();
+    } catch (e) {
+      console.error("Error stopping recording:", e);
     }
-  }
-  
-  saveAsGif(filename) {
-    // Create a hidden gif.js worker (you'd need to include gif.js in your project)
-    // This is a simplified example - a real implementation would use a library
-    console.log("Converting frames to GIF...");
     
-    // Instead of a real GIF encoding, we'll provide a data URL of the first frame
-    // for demonstration purposes
-    if (this.frames.length > 0) {
-      const link = document.createElement('a');
-      link.href = this.frames[0]; // In a real implementation, this would be the GIF
-      link.download = `${filename}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      console.log(`Download initiated. In a real implementation, this would be a GIF of ${this.frames.length} frames.`);
-      
-      // Clear frames to free memory
-      this.frames = [];
+    this.isRecording = false;
+    this.capturer = null;
+    
+    // Update UI button
+    const recordBtn = document.getElementById('record-btn');
+    if (recordBtn) {
+      recordBtn.textContent = 'Start Recording';
     }
   }
 }
