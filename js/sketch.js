@@ -92,3 +92,15 @@ function windowResized() {
   // Reinitialize systems that depend on canvas size
   effectsSystem.initialize();
 }
+
+function keyPressed() {
+  // Toggle menu visibility when 'h' is pressed
+  if (key === 'h' || key === 'H') {
+    const controls = document.getElementById('controls');
+    if (controls.style.display === 'none') {
+      controls.style.display = '';
+    } else {
+      controls.style.display = 'none';
+    }
+  }
+}

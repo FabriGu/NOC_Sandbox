@@ -102,23 +102,26 @@ class EffectsSystem {
   }
   
   applyBlur() {
-    // Copy the main canvas to the blur buffer
+    // Replace this line:
     this.blurBuffer.image(canvas, 0, 0);
     
-    // Apply a simple box blur
-    this.blurBuffer.filter(BLUR, 3);
+    // With this:
+    this.blurBuffer.copy(drawingContext.canvas, 0, 0, width, height, 0, 0, width, height);
     
-    // Draw the blurred image back with reduced opacity
+    // Rest of the method remains the same
+    this.blurBuffer.filter(BLUR, 3);
     image(this.blurBuffer, 0, 0);
   }
   
   applyGlow() {
-    // Simple glow effect - would be more sophisticated in a real implementation
-    // This just adds a blurred copy underneath
+    // Replace this line:
     this.blurBuffer.image(canvas, 0, 0);
-    this.blurBuffer.filter(BLUR, config.glowStrength);
     
-    // Draw the blurred image first, then the original on top
+    // With this:
+    this.blurBuffer.copy(drawingContext.canvas, 0, 0, width, height, 0, 0, width, height);
+    
+    // Rest of the method remains the same
+    this.blurBuffer.filter(BLUR, config.glowStrength);
     image(this.blurBuffer, 0, 0);
   }
   

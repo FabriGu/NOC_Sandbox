@@ -55,7 +55,9 @@ class Recorder {
     // If it's time to capture a frame
     if (elapsedTime >= this.frameDuration) {
       // Copy the main canvas to the capture canvas
-      this.captureCanvas.image(canvas, 0, 0);
+      // this.captureCanvas.image(canvas, 0, 0);
+      this.captureCanvas.copy(get(), 0, 0, width, height, 0, 0, this.captureCanvas.width, this.captureCanvas.height);
+
       
       // Add frame data (base64 image)
       this.frames.push(this.captureCanvas.canvas.toDataURL('image/png'));

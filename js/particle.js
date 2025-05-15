@@ -16,10 +16,10 @@ class Particle {
     this.mass = this.size / 10; // Mass proportional to size
     
     // Visual properties
-    // this.color = Utils.getColor(particleSystem.getParticleCount(), config.particleCount);
+    this.color = Utils.getColor(0, config.particleCount);
     this.alpha = config.particleOpacity;
     this.shape = config.particleShape;
-    this.color = Utils.getColor(20,20);
+    // this.color = Utils.getColor(20,20);
     // Life
     this.lifespan = config.particleLifespan;
     this.isDead = false;
