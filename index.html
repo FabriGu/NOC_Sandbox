@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brainrot Physics Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+  
+  <!-- Core system files -->
+  <script src="js/config.js"></script>
+  <script src="js/recorder.js"></script>
+  <script src="js/utils.js"></script>
+  
+  <!-- Physics modules -->
+  <script src="js/particle.js"></script>
+  <script src="js/attractors.js"></script>
+  <script src="js/forces.js"></script>
+  <script src="js/constraints.js"></script>
+  
+  <!-- Visual modules -->
+  <script src="js/fractals.js"></script>
+  <script src="js/effects.js"></script>
+  
+  <!-- User interface -->
+  <script src="js/ui.js"></script>
+  
+  <!-- Main sketch -->
+  <script src="js/sketch.js"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #111;
+      font-family: Arial, sans-serif;
+    }
+    
+    #controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 100;
+    }
+    
+    button, select {
+      margin: 5px;
+      padding: 5px;
+    }
+    
+    label {
+      display: inline-block;
+      width: 150px;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <h3>Brainrot Generator Controls</h3>
+    <div id="ui-container"></div>
+    <hr>
+    <button id="randomize-btn">Randomize All</button>
+    <button id="record-btn">Start Recording</button>
+    <button id="save-preset-btn">Save Preset</button>
+    <select id="preset-select">
+      <option value="">Load Preset...</option>
+      <option value="bouncy">Bouncy Balls</option>
+      <option value="galaxy">Galaxy Simulation</option>
+      <option value="fractals">Fractal Madness</option>
+      <option value="fluid">Fluid Simulation</option>
+    </select>
+  </div>
+</body>
+</html>
